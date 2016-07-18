@@ -1,0 +1,10 @@
+.DS_Store
+*.o
+*.a
+*.d
+*.gz
+*.pyc
+build
+build.ninja
+.ninja*
+_local
