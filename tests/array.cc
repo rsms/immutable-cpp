@@ -133,6 +133,16 @@ TEST(ArrayIterator) {
       assert(*I == ++i);
     }
   }
+
+  // find-value iterator
+  {
+    int i = ArrayImp::BRANCHES;
+    auto I = a->find(i);
+    auto E = a->end();
+    for (; I != E; ++I) {
+      assert(*I == ++i);
+    }
+  }
   
   // ranged iterator
   {

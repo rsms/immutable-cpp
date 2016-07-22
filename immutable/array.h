@@ -45,18 +45,21 @@ namespace immutable {
     template <typename It> ref<Array> push(It& begin, const It& end) const;
 
     // Set value at index i, where i must be less than size().
-    // Returns nullptr if i is out-of bounds. Form 2 constructs a value T in-place.
-    ref<Array> setValue(uint32 i, ValueT*) const; // 1
-    template <typename Arg> ref<Array> set(uint32 i, Arg&&) const; // 2
+    // Returns nullptr if i is out-of bounds. Form 1 constructs a value T in-place.
+    template <typename Arg> ref<Array> set(uint32 i, Arg&&) const; // 1
+    ref<Array> set(uint32 i, ValueT*) const; // 2
+    
+    // Access value at index. If i >= size() the behavior is undefined.
+    const T& get(uint32 i) const;
+
+    // Find value at index. Returns the end iterator if index is out-of bounds.
+    Iterator find(uint32 i) const;
 
     // Find value at index. Returns nullptr if index is out-of bounds.
     const ref<ValueT> findValue(uint32 i) const;
     
-    // Find value at index. If i >= size() the behavior is undefined.
+    // Access value at index. If i >= size() the behavior is undefined.
     const ref<ValueT> getValue(uint32 i) const;
-    
-    // Find value at index. If i >= size() the behavior is undefined.
-    const T& get(uint32 i) const;
     
     // Access first and last value
     const T& first() const;
@@ -206,9 +209,9 @@ namespace immutable {
     template <typename Arg> ref<TransientArray> push(Arg&&); // 2
     
     // Set value at index i, where i must be less than size().
-    // Returns nullptr if i is out-of bounds. Form 2 constructs a value T in-place.
-    ref<TransientArray> setValue(uint32 i, ValueT*); // 1
-    template <typename Arg> ref<TransientArray> set(uint32 i, Arg&&); // 2
+    // Returns nullptr if i is out-of bounds. Form 1 constructs a value T in-place.
+    template <typename Arg> ref<TransientArray> set(uint32 i, Arg&&); // 1
+    ref<TransientArray> set(uint32 i, ValueT*); // 2
 
     // Find value at index. Returns nullptr if index is out-of bounds.
     const ref<ValueT> findValue(uint32 i) const;
@@ -320,7 +323,7 @@ namespace immutable {
   
   
   template <typename T>
-  inline ref<TransientArray<T>> TransientArray<T>::setValue(uint32 i, ValueT* v) {
+  inline ref<TransientArray<T>> TransientArray<T>::set(uint32 i, ValueT* v) {
     assert(v != nullptr);
     i += _start;
     if (i >= _end) {
@@ -332,7 +335,7 @@ namespace immutable {
   template <typename T>
   template <typename Arg>
   inline ref<TransientArray<T>> TransientArray<T>::set(uint32 i, Arg&& arg) {
-    return setValue(i, new ValueT(fwd<Arg>(arg)));
+    return set(i, new ValueT(fwd<Arg>(arg)));
   }
   
   
@@ -551,7 +554,7 @@ namespace immutable {
   
   
   template <typename T>
-  inline ref<Array<T>> Array<T>::setValue(uint32 i, ValueT* v) const {
+  inline ref<Array<T>> Array<T>::set(uint32 i, ValueT* v) const {
     assert(v != nullptr);
     i += _start;
     if (i >= _end) {
@@ -563,7 +566,13 @@ namespace immutable {
   template <typename T>
   template <typename Arg>
   inline ref<Array<T>> Array<T>::set(uint32 i, Arg&& arg) const {
-    return setValue(i, new ValueT(fwd<Arg>(arg)));
+    return set(i, new ValueT(fwd<Arg>(arg)));
+  }
+
+
+  template <typename T>
+  inline typename Array<T>::Iterator Array<T>::find(uint32 i) const {
+    return Iterator(this, _start + i, _end);
   }
   
 
