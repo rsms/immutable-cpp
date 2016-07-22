@@ -308,7 +308,7 @@ a = a->without(1, 4); // => [1, 5]
 ```
 
 #### asTransient() → TransientArray
-Returns a TransientArray contaning the same values as this array. Transient arrays are useful for efficient batch modifications to an array.
+Returns a [TransientArray](#transientarray) contaning the same values as this array. Transient arrays are useful for efficient batch modifications to an array.
 
 ```cc
 ref<TransientArrayT> asTransient() const;
