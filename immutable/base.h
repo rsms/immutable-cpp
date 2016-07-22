@@ -180,7 +180,7 @@ fwd(typename rmref<T>::type& t) noexcept {
 
 // construct something
 template <typename T, typename... Args> inline void
-cons(T* p, Args&&... args) {
+construct(T* p, Args&&... args) {
   ::new((void*)p)T(fwd<Args>(args)...);
 }
 

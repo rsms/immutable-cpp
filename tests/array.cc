@@ -293,6 +293,17 @@ TEST(ArrayTransient) {
 }
 
 
+TEST(ArrayCons) {
+  auto a = Array<int>::create({1, 2, 3});
+  a = a->cons(0);
+  assert(a->size() == 4);
+  assert(a->get(0) == 0);
+  assert(a->get(1) == 1);
+  assert(a->get(2) == 2);
+  assert(a->get(3) == 3);
+}
+
+
 TEST(ArrayConcat) {
   auto a = Array<int>::create({1,2,3});
 

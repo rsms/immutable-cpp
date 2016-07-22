@@ -166,7 +166,7 @@ Iterator find(uint32 i) const;
 ```
 
 #### push(value) → Array
-Produces an array with value(s) added to the end
+Produces an array with value(s) added to the end. This operation is sometimes called "conj" or "conjoin" in functional programming.
 
 ```cc
 ref<Array> push(Any&&) const;                                               // 1
@@ -213,16 +213,28 @@ for (auto& monster : *monsters) {
 // hp: 20, xp: 1
 ```
 
+#### cons(value) → Array
+Returns an array with value added to the beginning. This operation is sometimes called "push_front" or "shift" in some mutative implementations. Note that you can use `splice` to form arrays with multiple new items added to the beginning.
+
+```cc
+ref<Array> cons(Any&&) const;     // 1
+ref<Array> cons(Value<T>*) const; // 2
+
+// Example:
+auto a = Array<int>::create({1, 2, 3});
+a = a->cons(0); // => [0, 1, 2, 3]
+```
+
 #### set(index, value) → Array
 Set value at index, where index must be less than size(). Returns nullptr if i is out-of bounds. For form 1, value can be anything that can be used to construct a T.
 
 ```cc
 template <typename Any> ref<Array> set(uint32 index, Any&&) const; // 1
-ref<Array> set(uint32 i, Value<T>*) const;                           // 2
+ref<Array> set(uint32 i, Value<T>*) const;                         // 2
 ```
 
 #### pop() → Array
-Remove the last item.
+Returns an array without the last value.
 
 ```cc
 ref<Array> pop() const;
@@ -233,7 +245,7 @@ a = a->pop(); // => [1, 2]
 ```
 
 #### rest() → Array
-Returns an array with all items but the first. Equiv to slice(1). Called "pop_front" or "shift" in some mutative implementations.
+Returns an array without the first value. This operation is sometimes called "pop_front" or "unshift" in some mutative implementations.
 
 ```cc
 ref<Array> rest() const;

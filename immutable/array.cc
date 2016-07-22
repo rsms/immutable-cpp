@@ -17,7 +17,6 @@
 #endif
 
 namespace immutable {
-  
   using A = ArrayImp::A;
   using N = ArrayImp::N;
 
@@ -47,7 +46,7 @@ namespace immutable {
     {
       uint32 i = 0;
       while (i < length) {
-        cons(&_v[i++]);
+        construct(&_v[i++]);
       }
     }
 
@@ -55,10 +54,10 @@ namespace immutable {
     static N* create(uint32 len, EditID edit) {
       DCHECK(len <= BRANCHES);
       N* n = (N*)calloc(sizeof(N) + (sizeof(ref<Object>) * BRANCHES), 1);
-      cons(n, edit, len);
+      construct(n, edit, len);
       // the following is needed if we use malloc instead of calloc:
       //while (len--) {
-      //  cons(&n->_v[len]);
+      //  construct(&n->_v[len]);
       //}
       return n;
     }
@@ -695,6 +694,18 @@ namespace immutable {
     t->release();
     return a;
   }
+
+
+  ArrayImp::A* ArrayImp::cons(A* a, Object* val) {
+    // [1 2 3] cons(0) => [0 1 2 3]
+    // TODO: something more efficient
+    auto t = createTransient(&EMPTY);
+    detail::tpush(t, val);
+    detail::tpushAll(t, a, a->_start, a->_end);
+    a = createPersistent(t);
+    t->release();
+    return a;
+  }
   
   
   ArrayImp::A* ArrayImp::splice(A* a, uint32 start, uint32 end, A::Iterator& it) {
@@ -848,7 +859,7 @@ namespace immutable {
   ArrayImp::N* EMPTY_ROOT = (ArrayImp::N*)&EMPTY_ROOT_storage;
   static struct _init {_init() {
     asm __volatile__ ("" : : : ); // stops _init from being stripped
-    cons(EMPTY_ROOT, empty_initializer(), BRANCHES);
+    construct(EMPTY_ROOT, empty_initializer(), BRANCHES);
   }} __init;
 
   ArrayImp::N ArrayImp::EMPTY_NODE(empty_initializer(), 0);

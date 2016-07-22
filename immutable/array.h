@@ -44,6 +44,10 @@ namespace immutable {
     template <typename It> ref<Array> push(It&& begin, const It& end) const;
     template <typename It> ref<Array> push(It& begin, const It& end) const;
 
+    // Prepend value to the beginning. Form 2 constructs a value T in-place.
+    ref<Array> cons(ValueT*) const; // 1
+    template <typename Arg> ref<Array> cons(Arg&&) const; // 2
+
     // Set value at index i, where i must be less than size().
     // Returns nullptr if i is out-of bounds. Form 1 constructs a value T in-place.
     template <typename Arg> ref<Array> set(uint32 i, Arg&&) const; // 1
@@ -274,6 +278,7 @@ namespace immutable {
     static Object* firstValue(A*); // unchecked
     static A*      set(A*, uint32 i, Object*);
     static A*      push(A*, Object*);
+    static A*      cons(A*, Object*);
     static A*      pop(A*);
     static A*      slice(A*, uint32 start, uint32 end);
     static A*      without(A*, uint32 start, uint32 end);
@@ -505,7 +510,6 @@ namespace immutable {
   
   template <typename T>
   inline ref<Array<T>> Array<T>::push(ValueT* v) const {
-    assert(v != nullptr);
     return (Array<T>*)ArrayImp::push((ArrayImp::A*)this, v);
   }
   
@@ -550,6 +554,17 @@ namespace immutable {
         t->push(I.value());
       }
     });
+  }
+  
+  
+  template <typename T>
+  inline ref<Array<T>> Array<T>::cons(ValueT* v) const {
+    return (Array<T>*)ArrayImp::cons((ArrayImp::A*)this, v);
+  }
+  
+  template <typename T>
+  template <typename Arg> ref<Array<T>> Array<T>::cons(Arg&& arg) const {
+    return cons(new ValueT(fwd<Arg>(arg)));
   }
   
   
