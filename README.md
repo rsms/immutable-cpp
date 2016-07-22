@@ -114,13 +114,13 @@ assert(a.ptr() == b.ptr()); // actually same underlying memory
 Create an array from values.
 
 ```cc
-ref<Array> Array::create(std::initializer_list<Y>&&);                          // 1
-ref<Array> Array::create(InputIterable&&);                                     // 2
-ref<Array> Array::create(const InputIterable&);                                // 3
-ref<Array> Array::create(InputIt& begin, const InputIt& end);                  // 4
-ref<Array> Array::create(InputIt&& begin, const InputIt& end);                 // 5
-ref<Array> Array::create(Array::Iterator&& begin, const Array::Iterator& end); // 6
-ref<Array> Array::create(Array::Iterator& begin, const Array::Iterator& end);  // 7
+static ref<Array> create(std::initializer_list<typename Y>&&);         // 1
+static ref<Array> create(typename Iterable&&);                         // 2
+static ref<Array> create(const typename Iterable&);                    // 3
+static ref<Array> create(Iterator&& begin, const Iterator& end);       // 4
+static ref<Array> create(Iterator& begin, const Iterator& end);        // 5
+static ref<Array> create(typename It& begin, const typename It& end);  // 6
+static ref<Array> create(typename It&& begin, const typename It& end); // 7
 ```
 
 - Form 2 and 3 takes something that provides begin() and end() which returns [std::input_iterator](http://en.cppreference.com/w/cpp/concept/InputIterator)
