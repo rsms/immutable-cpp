@@ -219,8 +219,8 @@ Returns an array with value added to the beginning. This operation is sometimes 
 Form 1 constructs a value of type T in-place with Any (anything), while form 2 references a value without any construction or copying of T.
 
 ```cc
-ref<Array> cons(typename Any&&) const;     // 1
-ref<Array> cons(Value<T>*) const; // 2
+ref<Array> cons(typename Any&&) const; // 1
+ref<Array> cons(Value<T>*) const;      // 2
 
 // Example:
 auto a = Array<int>::create({1, 2, 3});
@@ -232,7 +232,7 @@ Set value at index, where index must be less than size(). Returns nullptr if i i
 
 ```cc
 ref<Array> set(uint32 index, typename Any&&) const; // 1
-ref<Array> set(uint32 i, Value<T>*) const;                         // 2
+ref<Array> set(uint32 i, Value<T>*) const;          // 2
 ```
 
 #### pop() → Array
