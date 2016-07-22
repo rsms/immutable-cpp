@@ -56,23 +56,23 @@ struct Array<T> {
 
   uint32 size() const;
   
-  ref<Array> push(ValueT*) const;
+  ref<Array> push(Value<T>*) const;
   ref<Array> push(typename Any&&) const;
   ref<Array> push(Iterator&& begin, const Iterator& end) const;
   ref<Array> push(Iterator& begin, const Iterator& end) const;
   ref<Array> push(typename It&& begin, const typename It& end) const;
   ref<Array> push(typename It& begin, const typename It& end) const;
 
-  ref<Array>        set(uint32 i, typename Any&&) const;
-  ref<Array>        set(uint32 i, ValueT*) const;
-  const T&          get(uint32 i) const;
-  Iterator          find(uint32 i) const;
-  const ref<ValueT> findValue(uint32 i) const;
-  const ref<ValueT> getValue(uint32 i) const;
-  const T&          first() const;
-  const T&          last() const;
-  const ref<ValueT> firstValue() const;
-  const ref<ValueT> lastValue() const;
+  ref<Array>          set(uint32 i, typename Any&&) const;
+  ref<Array>          set(uint32 i, Value<T>*) const;
+  const T&            get(uint32 i) const;
+  Iterator            find(uint32 i) const;
+  const ref<Value<T>> findValue(uint32 i) const;
+  const ref<Value<T>> getValue(uint32 i) const;
+  const T&            first() const;
+  const T&            last() const;
+  const ref<Value<T>> firstValue() const;
+  const ref<Value<T>> lastValue() const;
   
   ref<Array> pop() const;
   ref<Array> rest() const;
@@ -152,10 +152,10 @@ const T& last() const;
 Access value at index with bounds checks. Form 1 returns nullptr if index is out-of bounds. All other forms have undefined behavior if index is out-of bounds or if the array is empty.
 
 ```cc
-const ref<ValueT> findValue(uint32 i) const; // 1
-const ref<ValueT> getValue(uint32 i) const;  // 2
-const ref<ValueT> firstValue() const;        // 3
-const ref<ValueT> lastValue() const;         // 4
+const ref<Value<T>> findValue(uint32 i) const; // 1
+const ref<Value<T>> getValue(uint32 i) const;  // 2
+const ref<Value<T>> firstValue() const;        // 3
+const ref<Value<T>> lastValue() const;         // 4
 ```
 
 #### find(index) → Iterator
@@ -218,7 +218,7 @@ Set value at index, where index must be less than size(). Returns nullptr if i i
 
 ```cc
 template <typename Any> ref<Array> set(uint32 index, Any&&) const; // 1
-ref<Array> set(uint32 i, ValueT*) const;                           // 2
+ref<Array> set(uint32 i, Value<T>*) const;                           // 2
 ```
 
 #### pop() → Array
@@ -348,9 +348,9 @@ struct Array<T>::Iterator { // implements std::forward_iterator
   difference_type distanceTo(const Iterator& rhs) const;
 
   // Access value
-  T& operator*();
-  ValueT* value();
-  const ValueT* value() const;
+  T&              operator*();
+  Value<T>*       value();
+  const Value<T>* value() const;
 
   // number of items remaining until this==end()
   uint32 remaining() const;
@@ -366,18 +366,18 @@ The following is a short synopsis instead of full documentation as all the metho
 ```cc
 struct TransientArray<T> {
   uint32              size() const;
-  ref<TransientArray> push(ValueT*);
+  ref<TransientArray> push(Value<T>*);
   ref<TransientArray> push(typename Any&&);
   ref<TransientArray> set(uint32 i, typename Any&&);
-  ref<TransientArray> set(uint32 i, ValueT*);
-  const ref<ValueT>   findValue(uint32 i) const;
-  const ref<ValueT>   getValue(uint32 i) const;
+  ref<TransientArray> set(uint32 i, Value<T>*);
+  const ref<Value<T>> findValue(uint32 i) const;
+  const ref<Value<T>> getValue(uint32 i) const;
   const T&            get(uint32 i) const;
   ref<TransientArray> pop();
   const T&            first() const;
   const T&            last() const;
-  const ref<ValueT>   firstValue() const;
-  const ref<ValueT>   lastValue() const;
+  const ref<Value<T>> firstValue() const;
+  const ref<Value<T>> lastValue() const;
 }
 ```
 
@@ -394,6 +394,28 @@ auto t = a->asTransient();
 // apply changes to t ...
 a = t->makePersistent(); // => Array<T>
 a = t->makePersistent(); // => nullptr -- already sealed and referenced
+```
+
+
+## Value<T>
+
+A reference-counted container for any value. Copying a `Value<T>` does not cause the underlying value to be copied, but instead just referenced in a thread-safe manner.
+
+Synopsis:
+
+```cc
+struct Value<T> {
+  T value; // value is stored here
+
+  // construct T in-place
+  template <class... Args> Value(Args&&...);
+
+  // allow implicit cast to T
+  operator T&() { return value; }
+  operator const T&() const { return value; }
+
+  // Value is movable, copyable, move-assignable, copy-assignable, and comparable
+}
 ```
 
 
