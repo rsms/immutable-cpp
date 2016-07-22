@@ -178,7 +178,7 @@ ref<Array> push(Array::Iterator& begin, const Array::Iterator& end) const;  // 6
 ```
 
 - Form 1 constructs a value of type T in-place with Any (anything.)
-- Form 2 references a value without constructing, copying or moving a T.
+- Form 2 references a value without any construction or copying of T.
 - Form 3 and 4 takes arguments that conforms to [std::input_iterator](http://en.cppreference.com/w/cpp/concept/InputIterator). The value type of InputIt must be either Value<T> or some value that T can be constructed from, like T itself or an argument accepted by T's constructor.
 - Form 5 and 6 are specializations of 3 & 4 for Array::Iterator that avoids copying values.
 
@@ -216,8 +216,10 @@ for (auto& monster : *monsters) {
 #### cons(value) → Array
 Returns an array with value added to the beginning. This operation is sometimes called "push_front" or "shift" in some mutative implementations. Note that you can use `splice` to form arrays with multiple new items added to the beginning.
 
+Form 1 constructs a value of type T in-place with Any (anything), while form 2 references a value without any construction or copying of T.
+
 ```cc
-ref<Array> cons(Any&&) const;     // 1
+ref<Array> cons(typename Any&&) const;     // 1
 ref<Array> cons(Value<T>*) const; // 2
 
 // Example:
@@ -229,7 +231,7 @@ a = a->cons(0); // => [0, 1, 2, 3]
 Set value at index, where index must be less than size(). Returns nullptr if i is out-of bounds. For form 1, value can be anything that can be used to construct a T.
 
 ```cc
-template <typename Any> ref<Array> set(uint32 index, Any&&) const; // 1
+ref<Array> set(uint32 index, typename Any&&) const; // 1
 ref<Array> set(uint32 i, Value<T>*) const;                         // 2
 ```
 
@@ -282,11 +284,11 @@ a = a->slice(1, 4); // => [2, 3, 4]
 Replaces values within the range [start, end) with values from an iterator or another array. Form 1 accepts anything that implements [std::input_iterator](http://en.cppreference.com/w/cpp/concept/InputIterator). Form 2 and 3 accepts Array<T>::Iterator. Form 4 uses another array for the source of values to be spliced in.
 
 ```cc
-template <typename It>
-ref<Array> splice(uint32 start, uint32 end, It&& it, const It& endit) const; // 1
-ref<Array> splice(uint32 start, uint32 end, Iterator&& it) const;            // 2
-ref<Array> splice(uint32 start, uint32 end, Iterator& it) const;             // 3
-ref<Array> splice(uint32 start, uint32 end, ref<Array>) const;               // 4
+ref<Array> splice(uint32 start, uint32 end,
+                  typename It&& it, const typename It& endit) const; // 1
+ref<Array> splice(uint32 start, uint32 end, Iterator&& it) const;    // 2
+ref<Array> splice(uint32 start, uint32 end, Iterator& it) const;     // 3
+ref<Array> splice(uint32 start, uint32 end, ref<Array>) const;       // 4
 
 // Example:
 auto a = Array<int>::create({1, 2, 3, 4, 5});
@@ -324,7 +326,7 @@ a = t->makePersistent(); // => [11, 2, 33, 4, 55]
 Apply batch modifications using a transient. This method is really just a convenience for asTransient() ... makePersistent() as seen in the example above.
 
 ```cc
-template <typename F> ref<Array> modify(F&& fn) const;
+ref<Array> modify(typename Func&& fn) const;
 
 // Example: (C++14 specific because we use "auto" lambda argument)
 auto a = Array<int>::create({1, 2, 3, 4, 5});
@@ -420,7 +422,7 @@ struct Value<T> {
   T value; // value is stored here
 
   // construct T in-place
-  template <class... Args> Value(Args&&...);
+  Value(typename Args&&...);
 
   // allow implicit cast to T
   operator T&() { return value; }
