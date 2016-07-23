@@ -126,15 +126,28 @@ static ref<Array> create(typename It&& begin, const typename It& end); // 7
 - Form 1 takes an initializer list of any value type, and then constructs T's using the provided values in the initializer list by moving the values to T's constructor.
 - Form 2 and 3 takes something that provides begin() and end() which returns [std::input_iterator](http://en.cppreference.com/w/cpp/concept/InputIterator)
 - Form 4 and 5 takes something that conforms to [std::input_iterator](http://en.cppreference.com/w/cpp/concept/InputIterator)
-- Form 6 and 7 are specializations of 4 & 5 for Array::Iterator that avoids copying of values (instead it just references the same values.)
+- Form 6 and 7 are specializations of 4 & 5 for [Array<T>::Iterator](#arrayiterator) that avoids copying of values (instead it just references the same values.)
 
-Example:
+Examples:
 
 ```cc
+// Emplacing three T's with values from implicit initializer list
 auto a = Array<int>::create({1, 2, 3});
+
+// Constructing T's (std::string) with values of a different type (const char*)
+auto b = Array<std::string>::create(
+  std::initializer_list<const char*>{"Foo", "Bar"});
+
+// Constructing T's by moving values from an iterable
+auto c = Array<int>::create(std::vector({1, 2, 3}));
+
+// Constructoring T's by copying iterator values
+std::vector values({1, 2, 3});
+auto d = Array<int>::create(values.begin(), values.end());
 ```
 
 #### size() → uint32
+
 Number of values in the array
 
 
@@ -146,24 +159,42 @@ Directly access value at index without checking that index is within bounds. If 
 const T& get(uint32 index) const;
 const T& first() const;
 const T& last() const;
+
+// Example:
+auto a = Array<int>::create({1, 2, 3});
+a->get(1); // == 2
+a->last(); // == 3
+a->get(9); // probably crash from memory violation. probably.
 ```
 
 #### findValue(index), getValue(index), firstValue(), lastValue() → Value
 
-Access value at index with bounds checks. Form 1 returns nullptr if index is out-of bounds. All other forms have undefined behavior if index is out-of bounds or if the array is empty.
+Access [Value](#value) at index with bounds checks. Form 1 returns nullptr if index is out-of bounds. All other forms have undefined behavior if index is out-of bounds or if the array is empty.
 
 ```cc
 const ref<Value<T>> findValue(uint32 i) const; // 1
 const ref<Value<T>> getValue(uint32 i) const;  // 2
 const ref<Value<T>> firstValue() const;        // 3
 const ref<Value<T>> lastValue() const;         // 4
+
+// Example:
+auto a = Array<int>::create({1, 2, 3});
+a->findValue(1)->value; // == 2
+a->findValue(9);        // == nullptr
+a->lastValue()->value;  // == 3
 ```
 
 #### find(index) → Iterator
-Returns an iterator to value at index. Returns the end iterator if index is out-of bounds.
+Returns an [Array<T>::Iterator](#arrayiterator) to value at index. If index is out-of bounds, the end() iterator is returned.
 
 ```cc
 Iterator find(uint32 i) const;
+
+// Example:
+auto a = Array<int>::create({1, 2, 3});
+auto I = a->find(1);
+*I; // == 2
+a->find(9) == a->end();
 ```
 
 #### push(value) → Array
@@ -180,23 +211,18 @@ ref<Array> push(Array::Iterator& begin, const Array::Iterator& end) const;  // 6
 
 - Form 1 constructs a value of type T in-place with Any (anything.)
 - Form 2 references a value without any construction or copying of T.
-- Form 3 and 4 takes arguments that conforms to [std::input_iterator](http://en.cppreference.com/w/cpp/concept/InputIterator). The value type of InputIt must be either Value<T> or some value that T can be constructed from, like T itself or an argument accepted by T's constructor.
-- Form 5 and 6 are specializations of 3 & 4 for Array::Iterator that avoids copying values.
+- Form 3 and 4 takes arguments that conforms to [std::input_iterator](http://en.cppreference.com/w/cpp/concept/InputIterator). The value type of InputIt must be either [Value<T>](#value) or some value that T can be constructed from, like T itself or an argument accepted by T's constructor.
+- Form 5 and 6 are specializations of 3 & 4 for [Array<T>::Iterator](#arrayiterator) that avoids copying values.
 
-Basic example:
+Examples:
 
 ```cc
+// Simple example
 auto a = Array<int>::create({1, 2, 3});
-a = a->push(4);
-for (auto& v : *a) {
-  printf("%d ", v);
-}
-// output: 1 2 3 4
-```
+a = a->push(4); // a => [1, 2, 3, 4]
 
-Example of constructing multiple Ts from arguments passed via initializer_list:
-
-```cc
+// Example of constructing multiple Ts from arguments
+// passed via initializer_list:
 struct Monster {
   Monster(int hp, int xp=1) : hp(hp), xp(xp) {}
   int hp;
@@ -234,6 +260,10 @@ Set value at index, where index must be less than size(). Returns nullptr if i i
 ```cc
 ref<Array> set(uint32 index, typename Any&&) const; // 1
 ref<Array> set(uint32 i, Value<T>*) const;          // 2
+
+// Example:
+auto a = Array<int>::create({1, 2, 3});
+a = a->set(1, 22); // => [1, 22, 3]
 ```
 
 #### pop() → Array
@@ -282,7 +312,7 @@ a = a->slice(1, 4); // => [2, 3, 4]
 ```
 
 #### splice(start, end, source...) → Array
-Replaces values within the range [start, end) with values from an iterator or another array. Form 1 accepts anything that implements [std::input_iterator](http://en.cppreference.com/w/cpp/concept/InputIterator). Form 2 and 3 accepts Array<T>::Iterator. Form 4 uses another array for the source of values to be spliced in.
+Replaces values within the range [start, end) with values from an iterator or another array. Form 1 accepts anything that implements [std::input_iterator](http://en.cppreference.com/w/cpp/concept/InputIterator). Form 2 and 3 accepts [Array<T>::Iterator](#arrayiterator). Form 4 uses another array for the source of values to be spliced in.
 
 ```cc
 ref<Array> splice(uint32 start, uint32 end,
@@ -329,9 +359,9 @@ Apply batch modifications using a transient. This method is really just a conven
 ```cc
 ref<Array> modify(typename Func&& fn) const;
 
-// Example: (C++14 specific because we use "auto" lambda argument)
+// Example:
 auto a = Array<int>::create({1, 2, 3, 4, 5});
-a = a->modify([] (auto t) {
+a = a->modify([] (auto t) { // auto arg is a C++14 feature
   t->set(0, 11)
    ->set(2, 33); // can be chained
   t->set(4, 55); // or not, since operations mutate t.
@@ -344,6 +374,14 @@ Compare the values of the target array with the values in the array passed as an
 
 ```cc
 int compare(const ref<Array>& other) const;
+
+// Example:
+auto a = Array<std::string>::create({"Foo", "Bar", "Cat"});
+auto b = Array<std::string>::create({"Foo", "Bar", "Cat"});
+auto c = Array<std::string>::create({"Foo", "Bar", "Catz"});
+a->compare(b); // == 0
+a->compare(c); // == 1
+c->compare(a); // == -1
 ```
 
 #### begin([start[, endIndex]]), end() → Iterator
@@ -352,9 +390,37 @@ begin() returns a new iterator that accesses the range [start,endIndex). If endI
 ```cc
 Iterator begin(uint32 start=0, uint32 end=END) const;
 const Iterator& end() const;
+
+// Example:
+auto a = Array<int>::create({1, 2, 3});
+for (auto I = a->begin(); I != a->end(); ++I) {
+  printf("%d ", *I);
+} // output: 1 2 3
+
+// Example of iterating over a range:
+auto a = Array<int>::create({1, 2, 3, 4, 5});
+for (auto I = a->begin(1, 4); I != a->end(); ++I) {
+  printf("%d ", *I);
+} // output: 2 3 4
+
+// Example of using non-standard method valid() (not using end())
+auto a = Array<int>::create({1, 2, 3});
+for (auto I = a->begin(); I.valid(); ++I) {
+  printf("%d ", *I);
+} // output: 1 2 3
+
+// Range-based for-loops are supported as well:
+auto a = Array<int>::create({1, 2, 3});
+for (auto& v : *a) {
+  printf("%d ", v);
+} // output: 1 2 3
 ```
 
 ### Array<T>::Iterator
+Iterator that implements [std::forward_iterator](http://en.cppreference.com/w/cpp/concept/ForwardIterator) with additional functionality described below.
+
+Synopsis:
+
 ```cc
 struct Array<T>::Iterator { // implements std::forward_iterator
   // is: movable, copyable, move-assignable, copy-assignable, comparable.
@@ -367,8 +433,8 @@ struct Array<T>::Iterator { // implements std::forward_iterator
   Value<T>*       value();
   const Value<T>* value() const;
 
-  // number of items remaining until this==end()
-  uint32 remaining() const;
+  // True when this iterator has a value
+  bool valid() const;
 }
 ```
 
@@ -397,7 +463,7 @@ struct TransientArray<T> {
 ```
 
 #### makePersistent() → Array
-"Seals" the array and returns a persistent array which refers to the same underlying data.
+"Seals" the array and returns a persistent [Array](#array) which refers to the same underlying data.
 Returns null if this transient array is not editable (e.g. `makePersistent()` has already been called.)
 
 ```cc
