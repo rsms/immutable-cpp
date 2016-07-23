@@ -264,6 +264,10 @@ public:
     if (_ptr) { _ptr->retain(); }
   }
   
+  ref(ref<T>&& r) : _ptr(r._ptr) {
+    r._ptr = nullptr;
+  }
+  
   template <typename U>
   ref(const ref<U>& r) : _ptr(r.ptr()) {
     if (_ptr) { _ptr->retain(); }
@@ -295,6 +299,16 @@ public:
   
   ref<T>& operator=(const ref<T>& r) {
     return *this = r._ptr;
+  }
+
+  ref<T>& operator=(ref<T>&& r) {
+    if (r._ptr != _ptr) {
+      T* old_ptr = _ptr;
+      _ptr = r._ptr;
+      if (old_ptr) { old_ptr->release(); }
+    }
+    r._ptr = nullptr;
+    return *this;
   }
   
   template <typename U>
