@@ -541,12 +541,8 @@ struct RefCounted {
   virtual void retain() const =0;
   virtual bool release() const =0; // true if count is zero and obj was deleted
   virtual bool hasSingleRef() const =0;
- protected:
-  virtual ~RefCounted() {}
 };
 ```
-
-Where 
 
 
 ## Learn more
