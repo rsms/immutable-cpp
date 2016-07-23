@@ -123,6 +123,7 @@ static ref<Array> create(typename It& begin, const typename It& end);  // 6
 static ref<Array> create(typename It&& begin, const typename It& end); // 7
 ```
 
+- Form 1 takes an initializer list of any value type, and then constructs T's using the provided values in the initializer list by moving the values to T's constructor.
 - Form 2 and 3 takes something that provides begin() and end() which returns [std::input_iterator](http://en.cppreference.com/w/cpp/concept/InputIterator)
 - Form 4 and 5 takes something that conforms to [std::input_iterator](http://en.cppreference.com/w/cpp/concept/InputIterator)
 - Form 6 and 7 are specializations of 4 & 5 for Array::Iterator that avoids copying of values (instead it just references the same values.)
