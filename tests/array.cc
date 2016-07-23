@@ -2,6 +2,7 @@
 #include <immutable/array.h>
 #include <vector>
 #include <string>
+#include <thread>
 #include <stdio.h>
 
 using namespace immutable;
@@ -651,4 +652,42 @@ TEST(ArrayCompare) {
   
   b = Array<int>::create({1,2,3,4,6});
   assert(a->compare(b) == -1); // b is greater because of its values
+}
+
+
+TEST(ArrayMultiThreaded) {
+  uint32 count = ArrayImp::BRANCHES * ArrayImp::BRANCHES;
+  auto a = mkvals(count);
+
+  auto thread = [=] (int n) {
+    assert(a->get(1) == 2);
+    
+    auto b = a->set(1, 22);
+    assert(b != a);
+    assert(b->get(1) == 22);
+    b = a->set(1, 2);
+    assert(b->get(1) == 2);
+
+    b = b->push(4);
+    assert(b->size() == count + 1);
+    assert(b->get(count) == 4);
+
+    for (uint32 i = 0; i < count; ++i) {
+      b = b->set(i, int(i * n));
+    }
+
+    for (uint32 i = 0; i < count; ++i) {
+      assert(b->get(i) == int(i * n));
+    }
+  };
+
+  std::thread t1(thread, 1);
+  std::thread t2(thread, 2);
+  std::thread t3(thread, 3);
+  std::thread t4(thread, 4);
+
+  t1.join();
+  t2.join();
+  t3.join();
+  t4.join();
 }
