@@ -440,7 +440,7 @@ struct Array<T>::Iterator { // implements std::forward_iterator
 
 ## TransientArray<T>
 
-A non-persistent random-accessible ordered collection of value type `T` that provides a subset of the functionality of `Array` but with more efficient modifications, making it suitable for batch updates to `Array`s.
+A non-persistent random-accessible ordered collection of value type `T` that provides a subset of the functionality of [Array](#array) but with more efficient modifications, making it suitable for batch updates and modifications. Transient arrays are *not* thread safe.
 
 The following is a short synopsis instead of full documentation as all the methods listed here are documented under `Array` and work in the same way with the only exception that they mutate the target `TransientArray` rather than returning new arrays.
 
@@ -461,6 +461,8 @@ struct TransientArray<T> {
   const ref<Value<T>> lastValue() const;
 }
 ```
+
+Note that [Array::create](#create--array) is implemented using a transient array for efficient creation, so there should be no need to use TransientArray for trivial array creation.
 
 #### makePersistent() → Array
 "Seals" the array and returns a persistent [Array](#array) which refers to the same underlying data.
