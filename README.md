@@ -170,7 +170,7 @@ a->get(9); // probably crash from memory violation. probably.
 
 #### findValue(index), getValue(index), firstValue(), lastValue() → Value
 
-Access [Value](#value) at index with bounds checks. Form 1 returns nullptr if index is out-of bounds. All other forms have undefined behavior if index is out-of bounds or if the array is empty.
+Access [Value](#value) at index. Form 1 returns nullptr if index is out-of bounds. All other forms have undefined behavior if index is out-of bounds or if the array is empty.
 
 ```cc
 const ref<Value<T>> findValue(uint32 i) const; // 1
@@ -501,6 +501,52 @@ struct Value<T> {
   // Value is movable, copyable, move-assignable, copy-assignable, and comparable
 }
 ```
+
+## ref<T>
+
+Trivial memory-pointer manager that implements automatic reference counting (thread-safe, intrusive.)
+
+Synopsis:
+
+```cc
+struct ref<T> {
+  ref();                       // == ref(nullptr)
+  ref(T*);                     // retains a reference
+  ref(const ref<T>&);          // retains a reference
+  ref(ref<T>&&);               // takes over reference
+  ref(const ref<typename U>&); // retains a reference to U::ptr()
+  ~ref();                      // releases its reference
+
+  // access to T
+  T* ptr() const;
+  operator T*() const;
+  T* operator->() const;
+
+  ref<T>& operator=(T*);            // releases its reference, then retains a reference
+  ref<T>& operator=(const ref<T>&); // releases its reference, then retains a reference
+  ref<T>& operator=(ref<T>&&);      // releases its reference, then takes over a reference
+  ref<T>& operator=(const ref<typename U>&); // like operator=(T*) but gets pointer from U::ptr()
+
+  void swap(T**);     // swap target's pointer with argument's pointer
+  void swap(ref<T>&); // swap target with argument
+protected:
+  T* _ptr;
+}
+```
+
+`ref` requires `T` to implement the following interface:
+
+```cc
+struct RefCounted {
+  virtual void retain() const =0;
+  virtual bool release() const =0; // true if count is zero and obj was deleted
+  virtual bool hasSingleRef() const =0;
+ protected:
+  virtual ~RefCounted() {}
+};
+```
+
+Where 
 
 
 ## Learn more
