@@ -591,6 +591,15 @@ namespace immutable {
     return nullptr; // empty branch or index out-of bounds
   }
   
+  Object* ArrayImp::findValue(TA* a, uint32 i) {
+    N* n = detail::checkedSlotsFor(a, i);
+    const auto k = i & MASK;
+    if (n && k < n->length) {
+      return n->slot(k);
+    }
+    return nullptr; // empty branch or index out-of bounds
+  }
+  
   
   Object* ArrayImp::getValue(A* a, uint32 i) {
     Object* val = detail::uncheckedSlotsFor(a, i)->slot(i & MASK);
@@ -797,15 +806,6 @@ namespace immutable {
     N* editableRoot = root->copy(root->length, std::this_thread::get_id());
     N* editableTail = ((N*)a->_tail.ptr())->copy(BRANCHES, editableRoot->edit);
     return new TA(a->_start, a->_end, a->_shift, editableRoot, editableTail);
-  }
-  
-  Object* ArrayImp::findValue(TA* a, uint32 i) {
-    N* n = detail::checkedSlotsFor(a, i);
-    const auto k = i & MASK;
-    if (n && k < n->length) {
-      return n->slot(k);
-    }
-    return nullptr; // empty branch or index out-of bounds
   }
 
   
