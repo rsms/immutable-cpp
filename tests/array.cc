@@ -181,6 +181,15 @@ TEST(ArrayIterator) {
       assert(v == ++i);
     }
   }
+
+  // non-standard iteration using valid()
+  {
+    int i = 0;
+    for (auto I = a->begin(); I.valid(); ++I) {
+      assert(*I == ++i);
+    }
+  }
+
 }
 
 TEST(ArrayPop) {

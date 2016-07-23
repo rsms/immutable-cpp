@@ -145,7 +145,8 @@ namespace immutable {
       T& operator*();
       ValueT* value();
       const ValueT* value() const;
-      uint32 remaining() const; // number of items remaining
+      bool valid() const;
+
       bool operator==(const Iterator& rhs) const;
       bool operator!=(const Iterator& rhs) const { return !(*this == rhs); }
       
@@ -814,8 +815,6 @@ namespace immutable {
   
   template <typename T>
   inline Value<T>* Array<T>::Iterator::value() {
-    assert (_i < _end);
-    assert (_i - _base != ArrayImp::BRANCHES);
     Object* obj = _slots[_i & ArrayImp::MASK];
     ImmutableAssertTypeTag(obj, ValueT::TYPE_TAG);
     return static_cast<ValueT*>(obj);
@@ -823,11 +822,14 @@ namespace immutable {
 
   template <typename T>
   inline const Value<T>* Array<T>::Iterator::value() const {
-    assert (_i < _end);
-    assert (_i - _base != ArrayImp::BRANCHES);
     Object* obj = _slots[_i & ArrayImp::MASK];
     ImmutableAssertTypeTag(obj, ValueT::TYPE_TAG);
     return static_cast<const ValueT*>(obj);
+  }
+
+  template <typename T>
+  inline bool Array<T>::Iterator::valid() const {
+    return _slots && _i < _end;
   }
   
   template <typename T>
