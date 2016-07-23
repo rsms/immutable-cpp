@@ -1,6 +1,6 @@
 # Immutable++
 
-Persistent immutable data structures.
+Persistent immutable data structures providing practically O(1) for appends, updates and lookups based on work by Rich Hickey and by consequence Phil Bagwell.
 
 ```cc
 auto a = Array<int>::empty();
@@ -501,6 +501,14 @@ struct Value<T> {
 }
 ```
 
+
+## Learn more
+
+To learn more about the inner workings of the implementation, consider reading the ["Understanding Clojure's Persistent Vectors" series of blog posts](http://hypirion.com/musings/understanding-persistent-vector-pt-1).
+
+To learn more about the concept of immutable data structures, check out Chris Okasaki's ["Purely functional data structures"](https://www.cs.cmu.edu/~rwh/theses/okasaki.pdf).
+
+For a longer list of functional data structure reading, see ["New purely functional data structures published since 1998" on Stack Exchange](http://cstheory.stackexchange.com/questions/1539/whats-new-in-purely-functional-data-structures-since-okasaki#answer-1550).
 
 
 ## MIT license
